@@ -1,1 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KromaFlow | Éditeur Visuel</title>
+    <link rel="stylesheet" href="css/style.css?v=15">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Lobster&family=Playfair+Display:ital,wght@0,700;1,700&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
 
+    <main class="editor-container">
+        <section class="controls-panel">
+            <h1>KromaFlow.</h1>
+            
+            <div class="control-group">
+                <label class="upload-btn">
+                    <i class="fa-solid fa-upload"></i> Charger une image
+                    <input type="file" id="imageUpload" accept="image/png, image/jpeg" hidden>
+                </label>
+            </div>
+
+            <div class="control-group">
+                <h3>Format</h3>
+                <div class="formats-grid">
+                    <button class="format-btn active" data-format="original"><i class="fa-regular fa-image"></i> Original</button>
+                    <button class="format-btn" data-format="square"><i class="fa-regular fa-square"></i> Carré 1:1</button>
+                    <button class="format-btn" data-format="story"><i class="fa-solid fa-mobile-screen"></i> Story 9:16</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>Filtres Rapides</h3>
+                <div class="presets-grid">
+                    <button class="preset-btn" data-preset="cyberpunk">Cyberpunk</button>
+                    <button class="preset-btn" data-preset="vintage">Vintage</button>
+                    <button class="preset-btn" data-preset="cinematic">Cinematic</button>
+                    <button class="preset-btn" data-preset="normal">Normal</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>Textes</h3>
+                <input type="text" id="topTextInput" placeholder="Texte du haut">
+                <input type="text" id="bottomTextInput" placeholder="Texte du bas">
+            </div>
+
+            <div class="control-group style-manager">
+                <div>
+                    <label>Police</label>
+                    <select id="fontSelect">
+                        <option value="Anton">Impact (Anton)</option>
+                        <option value="Roboto Mono">Tech (Roboto)</option>
+                        <option value="Lobster">Fun (Lobster)</option>
+                        <option value="Playfair Display">Élégant (Serif)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Couleur</label>
+                    <div class="color-wrapper">
+                        <input type="color" id="textColorInput" value="#ffffff">
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>Ajustements</h3>
+                <label for="brightnessSlider">Luminosité</label>
+                <input type="range" id="brightnessSlider" min="0" max="200" value="100">
+                
+                <label for="contrastSlider">Contraste</label>
+                <input type="range" id="contrastSlider" min="0" max="200" value="100">
+
+                <label for="grayscaleToggle" class="checkbox-label">
+                    <input type="checkbox" id="grayscaleToggle"> Noir & Blanc
+                </label>
+            </div>
+
+             <div class="actions-group">
+                <button id="resetBtn" class="btn btn-secondary"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                <button id="downloadBtn" class="btn btn-primary"><i class="fa-solid fa-download"></i> Télécharger</button>
+            </div>
+        </section>
+
+        <section class="canvas-panel">
+            <canvas id="memeCanvas"></canvas>
+            <p class="canvas-placeholder">Charge une image pour commencer !</p>
+        </section>
+    </main>
+
+    <script src="js/script.js?v=15"></script>
+</body>
+</html>
