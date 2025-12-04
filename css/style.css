@@ -267,3 +267,18 @@ canvas {
     /* Ajustement des gros boutons tactiles */
     .btn { padding: 1.2rem; width: 100%; font-size: 1.1rem; }
 }
+
+/* --- FIX CRITIQUE IPHONE : SLIDERS TACTILES --- */
+input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+    accent-color: var(--accent-color);
+    /* EMPÊCHE LE SCROLL QUAND ON TOUCHE LE SLIDER */
+    touch-action: none; 
+}
+
+/* On s'assure que les sliders sont bien "au-dessus" et cliquables */
+.control-group {
+    position: relative;
+    z-index: 5;
+}
