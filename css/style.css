@@ -83,8 +83,31 @@ input[type="text"] {
 }
 input[type="text"]:focus { border-color: var(--accent-color); }
 
-/* Sliders modernes */
-input[type="range"] { width: 100%; cursor: pointer; accent-color: var(--accent-color); }
+/* --- SLIDERS (Fix iOS pour le tactile) --- */
+input[type="range"] { 
+    width: 100%; 
+    cursor: pointer; 
+    accent-color: var(--accent-color); 
+}
+
+/* Rend la "boule" du slider plus grosse et tactile sur iPhone */
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 24px;
+    width: 24px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    margin-top: -10px; /* Centre la boule sur la barre */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+}
+
 
 .upload-btn {
     display: flex; justify-content: center; align-items: center; gap: 10px;
@@ -179,18 +202,64 @@ canvas {
 .canvas-panel.active .canvas-placeholder { display: none; }
 .canvas-placeholder { color: var(--text-secondary); font-size: 1rem; }
 
-/* Responsive Mobile */
+/* --- RESPONSIVE MOBILE (FIX IOS FINAL) --- */
 @media (max-width: 900px) {
-    body { display: block; height: auto; background-color: var(--bg-panel); }
+    body { 
+        display: block; 
+        height: auto; 
+        min-height: 100vh;
+        background-color: var(--bg-panel); 
+    }
+    
     .editor-container {
-        flex-direction: column-reverse;
-        width: 100%; height: auto; border: none; border-radius: 0;
+        /* On utilise column normal + order au lieu de reverse pour éviter les bugs Safari */
+        flex-direction: column; 
+        width: 100%; 
+        height: auto;
+        border: none; 
+        border-radius: 0;
+        overflow: visible; /* Important pour le tactile */
     }
+
+    /* Le Canvas en premier visuellement via 'order' */
     .canvas-panel {
-        height: 50vh; width: 100%; position: sticky; top: 0; z-index: 10;
-        border-bottom: 1px solid var(--border-color); padding: 1rem;
+        order: 1; /* On le force en première position */
+        height: 45vh; 
+        width: 100%;
+        position: sticky; 
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1rem;
     }
-    .controls-panel { width: 100%; height: auto; padding: 1.5rem; border-right: none; overflow-y: visible; }
-    .actions-group { position: sticky; bottom: 10px; z-index: 20; }
-    .btn { padding: 1.2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+
+    /* Les Contrôles en second */
+    .controls-panel {
+        order: 2; /* On le force en deuxième position */
+        width: 100%;
+        height: auto;
+        padding: 1.5rem;
+        padding-bottom: 100px; /* Marge pour que le dernier bouton ne soit pas caché par le footer */
+        border-right: none;
+        overflow-y: visible;
+        background-color: var(--bg-panel);
+        z-index: 20; 
+        position: relative; /* Nécessaire pour que le z-index fonctionne */
+    }
+
+    /* Boutons flottants en bas */
+    .actions-group { 
+        position: fixed; /* On fixe vraiment en bas de l'écran */
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 15px;
+        background: rgba(22, 22, 24, 0.95); /* Fond presque opaque */
+        backdrop-filter: blur(10px);
+        z-index: 100;
+        border-top: 1px solid var(--border-color);
+        margin: 0; /* Override */
+    }
+    
+    .btn { padding: 1rem; width: 100%; }
 }
