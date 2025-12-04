@@ -1,4 +1,4 @@
-// CORRECTION ICI : On retire { willReadFrequently: true } pour réactiver le GPU sur iPhone
+// On garde le contexte simple pour compatibilité max
 const canvas = document.getElementById('memeCanvas');
 const ctx = canvas.getContext('2d'); 
 
@@ -22,11 +22,11 @@ let state = {
     image: null,
     topText: '',
     bottomText: '',
-    brightness: 100,
-    contrast: 100,
+    brightness: 100, // Sera converti en 1.0
+    contrast: 100,   // Sera converti en 1.0
     grayscale: false,
-    saturation: 100,
-    sepia: 0,
+    saturation: 100, // Sera converti en 1.0
+    sepia: 0,        // Sera converti en 0.0
     fontFamily: 'Anton',
     textColor: '#ffffff',
     format: 'original'
@@ -49,8 +49,9 @@ function drawCanvas() {
     
     isDrawing = true;
 
-    // 1. Limitation taille image (Max 1024px pour iPhone)
-    const MAX_SIZE = 1024;
+    // 1. Optimisation Taille Image (Max 1200px)
+    // On garde une bonne qualité tout en évitant le crash mémoire iOS
+    const MAX_SIZE = 1200;
     let scale = 1;
     if (state.image.width > MAX_SIZE || state.image.height > MAX_SIZE) {
         scale = Math.min(MAX_SIZE / state.image.width, MAX_SIZE / state.image.height);
@@ -90,34 +91,32 @@ function drawCanvas() {
 
     // 3. Dessin
     try {
-        // Reset explicite pour iOS
-        ctx.filter = 'none';
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        ctx.save();
+        ctx.save(); // Sauvegarde avant filtres
 
-        // Application des filtres
-        // On force des nombres entiers (Math.round) pour éviter les erreurs de syntaxe WebKit
-        let b = Math.round(state.brightness);
-        let c = Math.round(state.contrast);
-        let s = Math.round(state.saturation);
-        let sp = Math.round(state.sepia);
+        // --- CORRECTION CRITIQUE IOS : DÉCIMALES AU LIEU DE % ---
+        // Safari iOS préfère "brightness(1.5)" à "brightness(150%)"
         
-        let filterString = `brightness(${b}%) contrast(${c}%) saturate(${s}%) sepia(${sp}%)`;
+        const b = state.brightness / 100; // ex: 100 devient 1.0
+        const c = state.contrast / 100;
+        const s = state.saturation / 100;
+        const sp = state.sepia / 100;
+        
+        let filterString = `brightness(${b}) contrast(${c}) saturate(${s}) sepia(${sp})`;
         
         if (state.grayscale) {
-            filterString += ' grayscale(100%)';
+            filterString += ' grayscale(1)';
         }
         
+        // Application du filtre
         ctx.filter = filterString;
 
         ctx.drawImage(state.image, dx, dy, dWidth, dHeight);
         
-        ctx.restore();
+        ctx.restore(); // Retire les filtres pour le texte
 
-        // 4. Texte (Dessiné PAR DESSUS l'image filtrée)
-        // Note: Le contexte est restauré, donc ctx.filter est 'none' ici (c'est ce qu'on veut)
-        
+        // 4. Texte
         ctx.fillStyle = state.textColor;
         ctx.strokeStyle = 'black';
         ctx.lineWidth = Math.max(2, canvas.width / 150);
@@ -142,7 +141,7 @@ function drawCanvas() {
         canvasPanel.classList.add('active');
         
     } catch (e) {
-        console.error("Erreur:", e);
+        console.error("Erreur JS:", e);
     } finally {
         isDrawing = false;
         if (drawingScheduled) {
@@ -177,7 +176,6 @@ imageUpload.addEventListener('change', (e) => {
     }
 });
 
-// Helper pour écouteurs multiples
 const addInputListeners = (element, callback) => {
     element.addEventListener('input', callback);
     element.addEventListener('change', callback); 
