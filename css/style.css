@@ -259,6 +259,10 @@ canvas {
         border: none;
         z-index: 1;
     }
+    /* FORCE LE TEXTE À DISPARAÎTRE QUAND LE CANVAS EST ACTIF */
+.canvas-panel.active .canvas-placeholder {
+    display: none !important;
+}
     
     /* Ajustement des gros boutons tactiles */
     .btn { padding: 1.2rem; width: 100%; font-size: 1.1rem; }
