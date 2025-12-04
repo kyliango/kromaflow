@@ -1,5 +1,6 @@
+// CORRECTION ICI : On retire { willReadFrequently: true } pour réactiver le GPU sur iPhone
 const canvas = document.getElementById('memeCanvas');
-const ctx = canvas.getContext('2d', { willReadFrequently: true }); // Optimisation mémoire
+const ctx = canvas.getContext('2d'); 
 
 // --- SÉLECTION DOM ---
 const imageUpload = document.getElementById('imageUpload');
@@ -31,25 +32,24 @@ let state = {
     format: 'original'
 };
 
-// --- SYSTÈME ANTI-LAG (THROTTLE) ---
-let isDrawing = false; // Verrou pour éviter la surcharge
-let drawingScheduled = false; // Si une demande arrive pendant que c'est verrouillé
+// Système anti-lag (Throttle)
+let isDrawing = false;
+let drawingScheduled = false;
 
 function requestDraw() {
     if (isDrawing) {
         drawingScheduled = true;
         return;
     }
-    // On lance le dessin au prochain rafraîchissement d'écran
     requestAnimationFrame(drawCanvas);
 }
 
 function drawCanvas() {
     if (!state.image) return;
     
-    isDrawing = true; // On verrouille
+    isDrawing = true;
 
-    // 1. Optimisation Taille Mobile (Max 1024px pour être sûr à 100%)
+    // 1. Limitation taille image (Max 1024px pour iPhone)
     const MAX_SIZE = 1024;
     let scale = 1;
     if (state.image.width > MAX_SIZE || state.image.height > MAX_SIZE) {
@@ -88,27 +88,43 @@ function drawCanvas() {
         dx = 0; dy = 0;
     }
 
-    // 3. Dessin avec sécurité
+    // 3. Dessin
     try {
+        // Reset explicite pour iOS
+        ctx.filter = 'none';
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
         ctx.save();
 
-        // Filtres
-        let filterString = `brightness(${state.brightness}%) contrast(${state.contrast}%) saturate(${state.saturation}%) sepia(${state.sepia}%)`;
-        if (state.grayscale) filterString += ' grayscale(100%)';
+        // Application des filtres
+        // On force des nombres entiers (Math.round) pour éviter les erreurs de syntaxe WebKit
+        let b = Math.round(state.brightness);
+        let c = Math.round(state.contrast);
+        let s = Math.round(state.saturation);
+        let sp = Math.round(state.sepia);
+        
+        let filterString = `brightness(${b}%) contrast(${c}%) saturate(${s}%) sepia(${sp}%)`;
+        
+        if (state.grayscale) {
+            filterString += ' grayscale(100%)';
+        }
+        
         ctx.filter = filterString;
 
         ctx.drawImage(state.image, dx, dy, dWidth, dHeight);
+        
         ctx.restore();
 
-        // Texte
+        // 4. Texte (Dessiné PAR DESSUS l'image filtrée)
+        // Note: Le contexte est restauré, donc ctx.filter est 'none' ici (c'est ce qu'on veut)
+        
         ctx.fillStyle = state.textColor;
         ctx.strokeStyle = 'black';
-        ctx.lineWidth = Math.max(2, canvas.width / 150); // Minimum 2px de contour
+        ctx.lineWidth = Math.max(2, canvas.width / 150);
         ctx.lineJoin = 'round';
         ctx.textAlign = 'center';
         
-        const fontSize = Math.floor(canvas.width * 0.08); 
+        const fontSize = Math.floor(canvas.width * 0.1); 
         ctx.font = `700 ${fontSize}px '${state.fontFamily}', sans-serif`;
 
         if (state.topText) {
@@ -126,10 +142,9 @@ function drawCanvas() {
         canvasPanel.classList.add('active');
         
     } catch (e) {
-        console.error("Erreur dessin:", e);
+        console.error("Erreur:", e);
     } finally {
-        isDrawing = false; // On déverrouille
-        // Si une demande a été faite pendant le dessin, on relance
+        isDrawing = false;
         if (drawingScheduled) {
             drawingScheduled = false;
             requestDraw();
@@ -162,10 +177,10 @@ imageUpload.addEventListener('change', (e) => {
     }
 });
 
-// Utilisation de 'input' ET 'change' pour compatibilité max iOS
+// Helper pour écouteurs multiples
 const addInputListeners = (element, callback) => {
     element.addEventListener('input', callback);
-    element.addEventListener('change', callback); // Sécurité pour iOS
+    element.addEventListener('change', callback); 
 };
 
 addInputListeners(topTextInput, (e) => { state.topText = e.target.value; requestDraw(); });
@@ -204,12 +219,15 @@ resetBtn.addEventListener('click', () => {
         brightness: 100, contrast: 100, saturation: 100, sepia: 0, grayscale: false,
         fontFamily: 'Anton', textColor: '#ffffff', format: 'original'
     };
+    
     topTextInput.value = ''; bottomTextInput.value = '';
     brightnessSlider.value = 100; contrastSlider.value = 100;
     grayscaleToggle.checked = false;
     fontSelect.value = 'Anton'; textColorInput.value = '#ffffff';
+    
     formatButtons.forEach(b => b.classList.remove('active'));
     document.querySelector('[data-format="original"]').classList.add('active');
+    
     requestDraw();
 });
 
